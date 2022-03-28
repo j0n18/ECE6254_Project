@@ -128,7 +128,7 @@ class ConvolutionalVAE(nn.Module):
         :return: mu: (BxD) tensor with means over latent variables
         :return: var: (BxD) tensor with variances over latent variables
         """
-        mu, log_var = torch.split(self.encoder(x), split_size_or_sections=2, dim=1)
+        mu, log_var = torch.split(self.encoder(x), split_size_or_sections=self.latent_dim, dim=1)
         return mu, log_var
 
     def decode(self, z):
