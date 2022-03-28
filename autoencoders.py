@@ -40,7 +40,7 @@ class ConvolutionalVAE(nn.Module):
         stride = (2, 2)
         kernel_sz = (3, 3)
         padding = (1, 1)
-        final_h, final_w = h, w
+        enc_h_out, enc_w_out = [h], [w]
         for h in range(1, len(layer_dims)):
             enc_layers.append(nn.Sequential(
                 nn.Conv2d(layer_dims[h - 1], out_channels=layer_dims[h],
@@ -50,9 +50,12 @@ class ConvolutionalVAE(nn.Module):
                 nn.BatchNorm2d(layer_dims[h]),
                 nn.LeakyReLU()
             ))
-            final_h = int(np.floor((final_h + 2 * padding[0] - (kernel_sz[0] - 1) - 1) / stride[0] + 1))
-            final_w = int(np.floor((final_w + 2 * padding[1] - (kernel_sz[1] - 1) - 1) / stride[1] + 1))
+            enc_h_out.append(
+                int(np.floor((enc_h_out[h - 1] + 2 * padding[0] - (kernel_sz[0] - 1) - 1) / stride[0] + 1)))
+            enc_w_out.append(
+                int(np.floor((enc_w_out[h - 1] + 2 * padding[1] - (kernel_sz[1] - 1) - 1) / stride[1] + 1)))
 
+        final_h, final_w = enc_h_out[-1], enc_w_out[-1]
         # mapping to the latents
         enc_layers.append(nn.Sequential(
             nn.Flatten(),
@@ -68,35 +71,41 @@ class ConvolutionalVAE(nn.Module):
         )
         self.decoder_view = Reshape(shape=(-1, layer_dims[-1], final_h, final_w))
         dec_layers = []
-        output_padding = (1, 1)
+        enc_h_out.reverse()
+        enc_w_out.reverse()
         hidden_layers.reverse()
-        for h in range(0, len(hidden_layers) - 1):
-            dec_layers.append(nn.Sequential(
-                nn.ConvTranspose2d(hidden_layers[h], out_channels=hidden_layers[h + 1],
-                                   kernel_size=kernel_sz,
-                                   stride=stride,
-                                   padding=padding,
-                                   output_padding=output_padding),
-                nn.BatchNorm2d(hidden_layers[h + 1]),
-                nn.LeakyReLU()
-            ))
-            final_h = (final_h - 1) * stride[0] - 2 * padding[0] + (kernel_sz[0] - 1) + output_padding[0] + 1
-            final_w = (final_w - 1) * stride[1] - 2 * padding[1] + (kernel_sz[1] - 1) + output_padding[1] + 1
-
-            # TODO: figure out how to reverse the output shape more generally (how much does stride > 1 matter)
-            if final_h == 4:
-                output_padding = (0, 0)
-            else:
+        dec_h_out, dec_w_out = [final_h], [final_w]
+        for h in range(0, len(hidden_layers)):
+            # adjust the output padding to get the same output shape
+            if enc_h_out[h + 1] % 2 == 0:
                 output_padding = (1, 1)
+            else:
+                output_padding = (0, 0)
 
-        # final output
-        dec_layers.append(nn.Sequential(
-            nn.ConvTranspose2d(hidden_layers[-1], channels_in,
-                               kernel_size=kernel_sz,
-                               stride=(2, 2),
-                               padding=padding,
-                               output_padding=output_padding),
-            nn.Tanh()))
+            if h != len(hidden_layers)-1:
+                dec_layers.append(nn.Sequential(
+                    nn.ConvTranspose2d(hidden_layers[h], out_channels=hidden_layers[h + 1],
+                                       kernel_size=kernel_sz,
+                                       stride=stride,
+                                       padding=padding,
+                                       output_padding=output_padding),
+                    nn.BatchNorm2d(hidden_layers[h + 1]),
+                    nn.LeakyReLU()
+                ))
+            else:
+                # final output
+                dec_layers.append(nn.Sequential(
+                    nn.ConvTranspose2d(hidden_layers[h], out_channels=channels_in,
+                                       kernel_size=kernel_sz,
+                                       stride=stride,
+                                       padding=padding,
+                                       output_padding=output_padding),
+                    nn.Tanh()))
+
+            dec_h_out.append(
+                (dec_h_out[h] - 1) * stride[0] - 2 * padding[0] + (kernel_sz[0] - 1) + output_padding[0] + 1)
+            dec_w_out.append(
+                (dec_w_out[h] - 1) * stride[1] - 2 * padding[1] + (kernel_sz[1] - 1) + output_padding[1] + 1)
 
         self.decoder = nn.Sequential(*dec_layers)
 
