@@ -1,7 +1,6 @@
 from autoencoders import ConvolutionalVAE
 import torch
 import numpy as np
-from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
@@ -63,29 +62,31 @@ test_loader = DataLoader(test_data, batch_size=32, shuffle=True)
 
 """ BUILD THE AUTOENCODER """
 input_shape = training_data[0][0].shape
-hidden_layers = [32, 64, 128, 256, 512, 1024]
-latent_dim = 2
+hidden_layers = [64, 128, 256, 512, 1024, 2048]
+latent_dim = 16
 vae = ConvolutionalVAE(input_shape=input_shape,
                        hidden_layers=hidden_layers,
                        latent_dim=latent_dim)
 adam_optim = torch.optim.Adam(vae.parameters, lr=0.001)
-recons_loss = torch.nn.BCELoss(reduction='none')
 vae.set_optimizer(adam_optim)
 vae.to(DEVICE)
 
 """ TRAIN THE MODEL """
-epochs = 20
-train_losses = []
+epochs = 100
+tol = 0.005
+train_losses = [np.inf]
 for epoch in range(1, epochs + 1):
     epoch_loss = []
     for train_x, _ in train_loader:
         train_x = train_x.to(DEVICE)
         epoch_loss.append(vae.training_step(train_x))
     train_losses.append(torch.mean(torch.as_tensor(epoch_loss)))
+    print(f"EPOCH NO. {epoch}: Loss = {train_losses[epoch]}")
+    # break if difference between successive losses is too small
+    if np.abs(train_losses[epoch] - train_losses[epoch-1]) < tol:
+        break
 
-    print(f"EPOCH NO. {epoch}: Loss = {train_losses[epoch - 1]}")
-
-plt.plot(np.array(train_losses))
+plt.plot(np.array(train_losses[1:]))
 plt.show()
 
 """ SAVE THE MODEL """
