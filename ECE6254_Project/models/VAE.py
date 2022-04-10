@@ -13,8 +13,9 @@ class VAE(pl.LightningModule):
         output_dim, 
         drop_prop,
         mu_prior_scale = 0,
-        var_prior_scale = 0.1
-        ):
+        var_prior_scale = 0.1,
+        kl_start_epoch = 50,
+        ramp_scale = 4):
 
         super().__init__()
         self.save_hyperparameters()
@@ -43,7 +44,7 @@ class VAE(pl.LightningModule):
         z = posterior.rsample()
         
         x_rec = self.decoder(z)
-        return x_rec
+        return x_rec, z
 
 
     def compute_loss(self, batch):
@@ -80,8 +81,13 @@ class VAE(pl.LightningModule):
         kl_loss = kl_divergence(prior, posterior)
         kl_loss = torch.mean(kl_loss)
 
+        if self.current_epoch <= hps.kl_start_epoch:
+            kl_ramp = 0
+        else:
+            kl_ramp = (self.current_epoch - hps.kl_start_epoch) / (hps.ramp_scale * hps.kl_start_epoch + 1)
+
         #low norm mean cost:
-        mu_norm_loss = torch.norm(mu, p = 2)
+        #mu_norm_loss = torch.norm(mu, p = 2)
 
         #similarity matching cost:
 
@@ -90,9 +96,9 @@ class VAE(pl.LightningModule):
         #################
 
         # Final loss #make sure kl divergence is non-negative
-        total_loss = recon_loss + kl_loss + mu_norm_loss
+        total_loss = recon_loss + kl_ramp * kl_loss #+ mu_norm_loss
 
-        return recon_loss, kl_loss, mu_norm_loss, total_loss
+        return recon_loss, kl_loss, total_loss #mu_norm_loss, total_loss
 
 
     def training_step(self, batch, batch_idx):
@@ -100,11 +106,10 @@ class VAE(pl.LightningModule):
         #the dataset, which sends data, inds is filling these properly
 
         # forward pass
-        recon_loss, kl_loss, mu_norm_loss, total_loss = self.compute_loss(batch)
+        recon_loss, kl_loss, total_loss = self.compute_loss(batch)
 
         self.log_dict(
-            {"recon_loss": recon_loss, "kl_loss": kl_loss,
-             "mu_norm_loss": mu_norm_loss, "total_loss": total_loss}
+            {"recon_loss": recon_loss, "kl_loss": kl_loss, "total_loss": total_loss}
         )
 
         return total_loss
@@ -115,11 +120,10 @@ class VAE(pl.LightningModule):
         #the dataset, which sends data, inds is filling these properly
 
         # forward pass
-        recon_loss, kl_loss, mu_norm_loss, total_loss = self.compute_loss(batch)
+        recon_loss, kl_loss, total_loss = self.compute_loss(batch)
 
         self.log_dict(
-            {"recon_loss": recon_loss, "kl_loss": kl_loss,
-             "mu_norm_loss": mu_norm_loss, "total_loss": total_loss}
+            {"recon_loss": recon_loss, "kl_loss": kl_loss, "total_loss": total_loss}
         )
 
         return total_loss
