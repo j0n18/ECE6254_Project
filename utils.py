@@ -1,4 +1,9 @@
 import numpy as np
+from ECE6254_Project.models.VAE import VAE
+from ECE6254_Project.models.AE import AE
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+from matplotlib import colors
 
 def sample_annulus(n_samples, r_outer, r_inner, seed = None):
     '''
@@ -14,3 +19,15 @@ def sample_annulus(n_samples, r_outer, r_inner, seed = None):
     y = rho * np.sin(theta)
 
     return x, y
+
+
+def load_pretrained_model(model, chkpt):
+    if model == "VAE":
+        trained_model = VAE.load_from_checkpoint(chkpt)
+    elif model == "AE":
+        trained_model = AE.load_from_checkpoint(chkpt)
+        
+    trained_model.freeze()
+
+    return trained_model
+
