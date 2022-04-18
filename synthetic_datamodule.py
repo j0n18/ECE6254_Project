@@ -33,8 +33,16 @@ class SyntheticDataModule(pl.LightningDataModule):
         x1, y1 = sample_annulus(hps.n_samples, hps.r_outer1, hps.r_inner1)
         x2, y2 = sample_annulus(hps.n_samples, hps.r_outer2, hps.r_inner2)
 
+        #Assign x1,y1 to label 1, and x2,y2 to label 2:
+        labels1 = np.zeros( (x1.shape[0], 1) )
+        labels2 = np.ones( (x1.shape[0], 1) )
+
         x = np.concatenate((x1,x2))
         y = np.concatenate((y1,y2))
+        labels = np.concatenate((labels1,labels2))
+
+        labels = labels.squeeze()
+        labels = labels.squeeze()
 
         data[:, 0] = x
         data[:, 1] = y
@@ -58,10 +66,20 @@ class SyntheticDataModule(pl.LightningDataModule):
         valid_data = data[valid_inds]
         test_data = data[test_inds]
 
+        train_labels = labels[train_inds]
+        valid_labels = labels[valid_inds]
+        test_labels = labels[test_inds]
+
+
         #save datasets to object (as tensors):
         self.train_data = torch.tensor(train_data, dtype=torch.float)
         self.valid_data = torch.tensor(valid_data, dtype=torch.float)
         self.test_data = torch.tensor(test_data, dtype=torch.float)
+
+        #save labels to object:
+        self.train_labels = torch.tensor(train_labels, dtype=torch.float)
+        self.valid_labels = torch.tensor(valid_labels, dtype=torch.float)
+        self.test_labels = torch.tensor(test_labels, dtype=torch.float)
 
         #save indices to object:
         self.train_inds = torch.tensor(train_inds, dtype=torch.float)
@@ -70,9 +88,9 @@ class SyntheticDataModule(pl.LightningDataModule):
 
 
     def setup(self, stage = None):
-        self.train_ds = TensorDataset(self.train_data, self.train_inds)
-        self.valid_ds = TensorDataset(self.valid_data, self.valid_inds)
-        self.test_ds = TensorDataset(self.test_data, self.test_inds)
+        self.train_ds = TensorDataset(self.train_data, self.train_labels, self.train_inds)
+        self.valid_ds = TensorDataset(self.valid_data, self.valid_labels, self.valid_inds)
+        self.test_ds = TensorDataset(self.test_data, self.test_labels, self.test_inds)
 
 
     def train_dataloader(self, shuffle = True):
