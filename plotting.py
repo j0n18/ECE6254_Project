@@ -3,8 +3,9 @@ from sklearn.decomposition import PCA
 import numpy as np
 from matplotlib.colors import ListedColormap
 import matplotlib
+from sklearn.metrics import ConfusionMatrixDisplay
 
-def plot_valid_and_recon(valid_data, valid_labels, trained_model, model_label):
+def plot_valid_and_recon(valid_data, valid_labels, trained_model, model_label, plot_title = "valid"):
 
     colors = ['r', 'b']
 
@@ -22,7 +23,7 @@ def plot_valid_and_recon(valid_data, valid_labels, trained_model, model_label):
                 c = valid_labels, 
                 cmap=matplotlib.colors.ListedColormap(colors))
 
-    plt.title('valid')
+    plt.title(plot_title)
     plt.xlim(-5,5)
     plt.ylim(-5,5)
     plt.show()
@@ -39,7 +40,7 @@ def plot_valid_and_recon(valid_data, valid_labels, trained_model, model_label):
     plt.show()
 
 
-def plot_latents(valid_data, valid_labels, trained_model, model_label):
+def plot_latents(valid_data, valid_labels, trained_model, model_label, show = True):
 
     colors = ['r', 'b']
 
@@ -48,19 +49,21 @@ def plot_latents(valid_data, valid_labels, trained_model, model_label):
     pca = PCA(n_components=3)
     z_pca = pca.fit_transform(z)
 
-    fig = plt.figure()
-    ax = plt.axes(projection ='3d')
+    if show:
+        fig = plt.figure()
+        ax = plt.axes(projection ='3d')
 
-    ax.scatter(
-        z_pca[:, 0],
-        z_pca[:, 1],
-        z_pca[:, 2],
-        c = valid_labels,
-        cmap=matplotlib.colors.ListedColormap(colors)
-    )
-    ax.set_title(f"$\phi(z)$ (from {model_label})")
+        ax.scatter(
+            z_pca[:, 0],
+            z_pca[:, 1],
+            z_pca[:, 2],
+            c = valid_labels,
+            cmap=matplotlib.colors.ListedColormap(colors)
+        )
+        ax.set_title(f"$\phi(z)$ (from {model_label})")
 
-    plt.show()
+
+        plt.show()
 
     return z_pca
 
@@ -127,7 +130,7 @@ def plot_3D_decision_boundary(svc, data, labels,classifier_label, model_label, m
     fig = plt.figure()
     ax  = fig.add_subplot(111, projection='3d')
     ax.plot_surface(xx, yy, z(xx,yy), alpha = 0.5, linewidth = 0.5, edgecolors='grey')
-    ax.plot3D(data[labels==0,0], data[labels==0,1], data[labels==0,2],'or')
-    ax.plot3D(data[labels==1,0], data[labels==1,1], data[labels==1,2],'ob')
+    ax.plot3D(data[labels==0,0], data[labels==0,1], data[labels==0,2],'or', alpha = 0.5)
+    ax.plot3D(data[labels==1,0], data[labels==1,1], data[labels==1,2],'ob', alpha = 0.5)
     plt.title(f'{classifier_label} decision boundary; features from {model_label}')
     plt.show()
