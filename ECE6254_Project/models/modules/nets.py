@@ -15,9 +15,9 @@ class MLP_Encoder(nn.Module):
         self.drop_prop = drop_prop
         self.AE = AE
 
-        self.dropout = nn.Dropout(p = self.drop_prop)
-        self.linear1 = nn.Linear(input_dim, hidden_size, bias=False)
-        self.bn1 = nn.BatchNorm1d(hidden_size)
+        #self.dropout = nn.Dropout(p = self.drop_prop)
+        self.linear1 = nn.Linear(input_dim, hidden_size)
+        #self.bn1 = nn.BatchNorm1d(hidden_size)
         self.relu = nn.ReLU(inplace=True)
 
         if self.AE:
@@ -27,12 +27,12 @@ class MLP_Encoder(nn.Module):
 
     def forward(self, x):
 
-        x = self.dropout(x)
+        #x = self.dropout(x)
         x = self.linear1(x)
-        x = self.bn1(x)
+        #x = self.bn1(x)
         x = self.relu(x)
         x = self.linear2(x)
-        x = self.dropout(x)
+        #x = self.dropout(x)
 
         if self.AE:
             return x
@@ -52,16 +52,16 @@ class MLP_Decoder(nn.Module):
         self.input_dim = input_dim
         self.drop_prop = drop_prop
 
-        self.dropout = nn.Dropout(p = self.drop_prop)
+        #self.dropout = nn.Dropout(p = self.drop_prop)
         self.linear1 = nn.Linear(input_dim, hidden_size, bias=True)
-        self.bn1 = nn.BatchNorm1d(hidden_size)
+        #self.bn1 = nn.BatchNorm1d(hidden_size)
         self.relu = nn.ReLU(inplace=True)
-        self.linear2 = nn.Linear(hidden_size, output_dim, bias=False)
+        self.linear2 = nn.Linear(hidden_size, output_dim)
 
     def forward(self, x):
-        x = self.dropout(x)
+        #x = self.dropout(x)
         x = self.linear1(x)
-        x = self.bn1(x)
+        #x = self.bn1(x)
         x = self.relu(x)
         x = self.linear2(x)
         return x
