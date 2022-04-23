@@ -35,6 +35,16 @@ model_ckpt_params_vae = {
     "auto_insert_metric_name": True,
 }
 
+model_ckpt_params_cvae = {
+    "monitor": "recon_loss",
+    "mode": "min",
+    "save_top_k": 1,
+    "save_last": True,
+    "verbose": False,
+    "dirpath": "./cvae_chkpts/",
+    "auto_insert_metric_name": True,
+}
+
 model_ckpt_params_ae = {
     "monitor": "recon_loss",
     "mode": "min",
@@ -42,6 +52,16 @@ model_ckpt_params_ae = {
     "save_last": True,
     "verbose": False,
     "dirpath": "./ae_chkpts/",
+    "auto_insert_metric_name": True,
+}
+
+model_ckpt_params_cae = {
+    "monitor": "recon_loss",
+    "mode": "min",
+    "save_top_k": 1,
+    "save_last": True,
+    "verbose": False,
+    "dirpath": "./cae_chkpts/",
     "auto_insert_metric_name": True,
 }
 
@@ -57,4 +77,4 @@ lr_monitor_params = {"logging_interval": "epoch"}
 csv_logger_params = {"save_dir": "./logs/", "version": "", "name": ""}
 tensorboard_logger_params = {"save_dir": "./logs/", "version": "", "name": ""}
 
-trainer_params = {"gradient_clip_val": 200, "max_epochs": 100, "log_every_n_steps": 5}
+trainer_params = {"gradient_clip_val": 200, "max_epochs": 15, "log_every_n_steps": 5}

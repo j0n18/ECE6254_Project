@@ -1,32 +1,27 @@
 import torch
 from torch import nn
 import pytorch_lightning as pl
-from ECE6254_Project.models.modules.nets import MLP_Encoder, MLP_Decoder
+from ECE6254_Project.models.modules.nets import ConvEncoder, ConvDecoder
 
 
-class AE(pl.LightningModule):
+class CAE(pl.LightningModule):
     def __init__(self,
-                 input_dim,
-                 hidden_size,
-                 output_dim,
-                 drop_prop,
-                 beta=0.01,
-                 ):
+                 input_shape, hidden_layers, latent_dim, beta=0.01):
         super().__init__()
         self.save_hyperparameters()
 
         # Define the Encoder:
-        self.encoder = MLP_Encoder(input_dim,
-                                   hidden_size,
-                                   output_dim,
-                                   drop_prop,
+        self.encoder = ConvEncoder(input_shape,
+                                   hidden_layers,
+                                   latent_dim,
                                    AE=True)
 
         # Define the Decoder:
-        self.decoder = MLP_Decoder(output_dim,
-                                   hidden_size,
-                                   input_dim,
-                                   drop_prop)
+        self.decoder = ConvDecoder(input_shape,
+                                   hidden_layers,
+                                   latent_dim,
+                                   self.encoder.enc_h_out,
+                                   self.encoder.enc_w_out)
 
     def forward(self, x):
         z = self.encoder(x)

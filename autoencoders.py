@@ -10,7 +10,7 @@ def log_normal_pdf(sample, mean, log_var, axis=1):
     mean = torch.as_tensor(mean)
     sample = torch.as_tensor(sample)
     return torch.sum(
-        -0.5 * ((sample - mean) ** 2 * torch.exp(-log_var) + log_var + log2pi),
+        -0.5 * (((sample - mean) ** 2) * torch.exp(-log_var) + log_var + log2pi),
         dim=axis
     )
 

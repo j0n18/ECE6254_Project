@@ -1,10 +1,10 @@
 import torch
-import numpy as np
 from torch import nn
 import pytorch_lightning as pl
+import numpy as np
 from torch.distributions import Independent, Normal
 
-from ECE6254_Project.models.modules.nets import MLP_Encoder, MLP_Decoder
+from ECE6254_Project.models.modules.nets import ConvEncoder, ConvDecoder
 
 
 def reparameterize(latent_mu, latent_var):
@@ -30,30 +30,27 @@ def log_normal_pdf(sample, mean, log_var, axis=1):
     )
 
 
-class VAE(pl.LightningModule):
+class CVAE(pl.LightningModule):
     def __init__(self,
-                 input_dim,
-                 hidden_size,
-                 output_dim,
-                 drop_prop,
+                 input_shape, hidden_layers, latent_dim,
                  mu_prior_scale=0,
-                 var_prior_scale=0.1,
+                 var_prior_scale=1,
                  kl_start_epoch=50,
                  ramp_scale=4):
         super().__init__()
         self.save_hyperparameters()
 
         # Define the Encoder:
-        self.encoder = MLP_Encoder(input_dim,
-                                   hidden_size,
-                                   output_dim,
-                                   drop_prop)
+        self.encoder = ConvEncoder(input_shape,
+                                   hidden_layers,
+                                   latent_dim)
 
         # Define the Decoder:
-        self.decoder = MLP_Decoder(output_dim,
-                                   hidden_size,
-                                   input_dim,
-                                   drop_prop)
+        self.decoder = ConvDecoder(input_shape,
+                                   hidden_layers,
+                                   latent_dim,
+                                   self.encoder.enc_h_out,
+                                   self.encoder.enc_w_out)
 
         self.reconstruction_loss = nn.MSELoss(reduction='none')
 
