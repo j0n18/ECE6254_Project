@@ -1,6 +1,7 @@
 import numpy as np
 from ECE6254_Project.models.VAE import VAE
 from ECE6254_Project.models.AE import AE
+from ECE6254_Project.models.CVAE import CVAE
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 from matplotlib import colors
@@ -28,10 +29,10 @@ def load_pretrained_model(model, chkpt):
         trained_model = VAE.load_from_checkpoint(chkpt)
     elif model == "AE":
         trained_model = AE.load_from_checkpoint(chkpt)
+    elif model == "CVAE":
+        trained_model = CVAE.load_from_checkpoint(chkpt)
 
     trained_model.freeze()
 
     return trained_model
-
-
 

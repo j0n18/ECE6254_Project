@@ -65,23 +65,26 @@ class CVAE(pl.LightningModule):
         x_rec = self.decoder(z)
         return x_rec, z
 
-    def compute_loss(self, batch):
-        x, _ = batch
+    def compute_loss(self, batch, beta=1):
+        x = batch[0]
         mu, log_var = self.encoder(x)
         z = reparameterize(mu, log_var)
         x_rec = self.decoder(z)
 
-        # reconstruction loss = log p(x|z)
-        recon_loss = self.reconstruction_loss(x_rec, x)
-        recon_loss = torch.sum(recon_loss, dim=tuple(np.arange(0, len(recon_loss.shape))[1:]))
+        # reconstruction loss = -log p(x|z)
+        log_px_z = -self.reconstruction_loss(x_rec, x)
+        log_px_z = torch.sum(log_px_z, dim=tuple(np.arange(0, len(log_px_z.shape))[1:]))
+        recon_loss = -torch.mean(log_px_z, dim=0)
 
-        # KL loss = log p(z) - log q(z|x)
+        # KL loss = log q(z|x) - log p(z)
         log_pz = log_normal_pdf(z, 0, 0)
         log_qz_x = log_normal_pdf(z, mu, log_var)
-        kl_loss = log_pz - log_qz_x
+        kl_loss = torch.mean(log_qz_x - log_pz, dim=0)
+
+        total_loss = recon_loss + beta * kl_loss
 
         # we are maximizing so return the negative of the ELBO estimate
-        return torch.mean(recon_loss), torch.mean(kl_loss), -torch.mean(-recon_loss + log_pz - log_qz_x, dim=0)
+        return recon_loss, kl_loss, total_loss
 
     def training_step(self, batch, batch_idx):
         # double check that batch_idx is correct: assumes that

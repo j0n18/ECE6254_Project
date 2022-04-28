@@ -13,8 +13,8 @@ dm_params = {
 
 model_params_vae = {
     "input_dim": 2, 
-    "hidden_size": 4,
-    "output_dim": 6, 
+    "hidden_size": 6,
+    "output_dim": 4,
     "drop_prop": 0.05
 }
 
@@ -77,4 +77,4 @@ lr_monitor_params = {"logging_interval": "epoch"}
 csv_logger_params = {"save_dir": "./logs/", "version": "", "name": ""}
 tensorboard_logger_params = {"save_dir": "./logs/", "version": "", "name": ""}
 
-trainer_params = {"gradient_clip_val": 200, "max_epochs": 15, "log_every_n_steps": 5}
+trainer_params = {"gradient_clip_val": 200, "max_epochs": 15, "log_every_n_steps": 10}

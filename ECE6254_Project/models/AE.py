@@ -36,7 +36,7 @@ class AE(pl.LightningModule):
 
     def compute_loss(self, batch):
         # build tensor dataset like this (with this ordering):
-        data, _ = batch
+        data = batch[0]
 
         z = self.encoder(data)
 

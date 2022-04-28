@@ -15,10 +15,10 @@ from utils import load_pretrained_model
 
 log = logging.getLogger(__name__)
 
-chkpt_vae = ".\\vae_chkpts\\good_runs\\best\\epoch=50-step=1326.ckpt"
+chkpt_vae = ".\\vae_chkpts\\last.ckpt"#.\\vae_chkpts\\good_runs\\best\\epoch=50-step=1326.ckpt"
 # "C:\\Users\\jonat\\OneDrive\\Desktop\\StatML\\ECE6254_Project\\vae_chkpts\\epoch=50-step=1326.ckpt"
 
-chkpt_ae = ".\\ae_chkpts\\good_runs\\best\\epoch=249-step=6500.ckpt"
+chkpt_ae = ".\\ae_chkpts\\last.ckpt"#".\\ae_chkpts\\good_runs\\best\\epoch=249-step=6500.ckpt"
 # "C:\\Users\\jonat\\OneDrive\\Desktop\\StatML\\ECE6254_Project\\ae_chkpts\\epoch=99-step=2600.ckpt"
 
 
